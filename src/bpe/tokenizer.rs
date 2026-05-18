@@ -62,6 +62,7 @@ impl Bpe {
     pub fn show_difference(&self) {
         println!("Original: {:?}", self.initial_string.clone().into_bytes());
         println!("Modified: {:?}", self.final_string.clone());
+        println!("Tokens  : {:?}", self.tokens);
     }
 
     pub fn tokenize(&mut self) {
