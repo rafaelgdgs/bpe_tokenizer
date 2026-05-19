@@ -76,7 +76,7 @@ impl Bpe {
 
             let Some(max_token) = max else {
                 warn!("Returning from tokenize earlier due to max not found.");
-                return;
+                break;
             };
 
             self.tokens.insert(unused, max_token);
