@@ -73,14 +73,12 @@ impl Bpe {
         while ((unused - 255) <= self.max_tokens) {
             hm = self.find_token_frequency(&current_string);
 
-            let max = hm.iter().max_by_key(|e| e.1);
+            let max = self.get_max_key(&hm);
 
-            let Some(max) = max else {
+            let Some(max_token) = max else {
                 warn!("Returning from tokenize earlier due to max not found.");
                 return;
             };
-
-            let max_token = *max.0;
 
             self.tokens.insert(unused, max_token);
 
@@ -153,11 +151,11 @@ impl Bpe {
         }
     }
 
-    fn get_max_key(&self, hm: &HashMap<(u32, u32), u32>) -> Option<(&(u32, u32), &u32)> {
-        if self.parallel {
-            hm.par_iter().max_by_key(|e| e.1)
-        } else {
-            hm.iter().max_by_key(|e| e.1)
-        }
+    fn get_max_key(&self, hm: &HashMap<(u32, u32), u32>) -> Option<(u32, u32)> {
+        let return_value = match self.parallel {
+            true => hm.par_iter().max_by_key(|e| e.1),
+            false => hm.iter().max_by_key(|e| e.1),
+        };
+        return_value.map(|x| *x.0)
     }
 }
