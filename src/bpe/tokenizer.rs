@@ -42,17 +42,17 @@ impl Bpe {
         }
     }
 
+    pub fn read_string(&mut self, content: String) {
+        trace!("Inside read_string.");
+        self.initial_string = content;
+    }
+
     pub fn set_max_tokens(&mut self, num: u32) {
         self.max_tokens = num;
     }
 
     pub fn set_parallel(&mut self, paral: bool) {
         self.parallel = paral;
-    }
-
-    pub fn read_string(&mut self, content: String) {
-        trace!("Inside read_string.");
-        self.initial_string = content;
     }
 
     pub fn show_original_string(&self) {
@@ -70,9 +70,8 @@ impl Bpe {
         let mut current_string: Vec<u32> = self.create_current_string();
         let mut unused: u32 = 256;
 
+        hm = self.find_token_frequency(&current_string);
         while ((unused - 255) <= self.max_tokens) {
-            hm = self.find_token_frequency(&current_string);
-
             let max = self.get_max_key(&hm);
 
             let Some(max_token) = max else {
