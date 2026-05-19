@@ -71,17 +71,16 @@ impl Bpe {
         let mut unused: u32 = 256;
 
         while ((unused - 255) <= self.max_tokens) {
-            current_string
-                .windows(2)
-                .for_each(|w| *hm.entry((w[0], w[1])).or_default() += 1);
+            hm = self.find_token_frequency(&current_string);
 
             let max = hm.iter().max_by_key(|e| e.1);
 
-            let Some(maxx) = max else {
+            let Some(max) = max else {
                 warn!("Returning from tokenize earlier due to max not found.");
                 return;
             };
-            let max_token = *maxx.0;
+
+            let max_token = *max.0;
 
             self.tokens.insert(unused, max_token);
 
@@ -121,6 +120,44 @@ impl Bpe {
                 .iter()
                 .map(|&byte| u32::from(byte))
                 .collect()
+        }
+    }
+
+    fn find_token_frequency(&self, vector: &[u32]) -> HashMap<(u32, u32), u32> {
+        if self.parallel {
+            vector
+                .par_windows(2)
+                .map(|w| (w[0], w[1]))
+                .fold(
+                    || HashMap::<(u32, u32), u32>::new(),
+                    |mut local_acc, pair| {
+                        *local_acc.entry(pair).or_default() += 1;
+                        local_acc
+                    },
+                )
+                .reduce(
+                    || HashMap::<(u32, u32), u32>::new(),
+                    |mut map1, map2| {
+                        for (pair, freq) in map2 {
+                            *map1.entry(pair).or_default() += freq;
+                        }
+                        map1
+                    },
+                )
+        } else {
+            let mut hash: HashMap<(u32, u32), u32> = HashMap::new();
+            vector
+                .windows(2)
+                .for_each(|w| *hash.entry((w[0], w[1])).or_default() += 1);
+            hash
+        }
+    }
+
+    fn get_max_key(&self, hm: &HashMap<(u32, u32), u32>) -> Option<(&(u32, u32), &u32)> {
+        if self.parallel {
+            hm.par_iter().max_by_key(|e| e.1)
+        } else {
+            hm.iter().max_by_key(|e| e.1)
         }
     }
 }
