@@ -4,20 +4,13 @@ use log::{error, info, trace, warn};
 use rayon::prelude::*;
 
 #[derive(Default)]
-enum State {
-    #[default]
-    New,
-    ReadFile,
-}
-
-#[derive(Default)]
 pub struct Bpe {
-    state: State,
     max_tokens: u32,
     initial_string: String,
     final_string: Vec<u32>,
     tokens: HashMap<u32, (u32, u32)>,
     parallel: bool,
+    recursive: bool,
 }
 
 impl Bpe {
@@ -32,7 +25,6 @@ impl Bpe {
         match string {
             Ok(v) => {
                 self.initial_string = v;
-                self.state = State::ReadFile;
                 trace!("Current state: ReadFile");
             }
             Err(v) => {
@@ -53,6 +45,10 @@ impl Bpe {
 
     pub fn set_parallel(&mut self, paral: bool) {
         self.parallel = paral;
+    }
+
+    pub fn set_recursive(&mut self, rec: bool) {
+        self.recursive = rec;
     }
 
     pub fn show_original_string(&self) {
@@ -92,6 +88,14 @@ impl Bpe {
                     && current_string[i + 1] == max_token.1
                 {
                     temp.push(unused);
+                    if self.recursive {
+                        if i > 0 {
+                            *hm.entry((current_string[i - 1], unused)).or_default() += 1;
+                        }
+                        if i + 2 < current_string.len() {
+                            *hm.entry((unused, current_string[i + 2])).or_default() += 1;
+                        }
+                    }
                     i += 2;
                 } else {
                     temp.push(current_string[i]);

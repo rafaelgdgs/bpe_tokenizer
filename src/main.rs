@@ -17,33 +17,35 @@ fn main() {
     let start = Instant::now();
 
     let mut token = Bpe::new();
-    // token.read_string("aaabdaaabac".to_string());
-    token.read_file("data/dom_casmurro.txt");
-    token.set_max_tokens(300);
+    token.read_string("aaabdaaabacaa".to_string());
+    // token.read_file("data/dom_casmurro.txt");
+    token.set_max_tokens(4);
+    token.set_recursive(true);
     token.set_parallel(false);
     token.tokenize();
 
     let duration = start.elapsed();
 
     println!("Sequential results:");
-    // token.show_original_string();
-    // token.show_difference();
+    token.show_original_string();
+    token.show_difference();
     println!("Execution time: {:?}", duration);
     println!();
 
     let start2 = Instant::now();
 
     let mut token_par = Bpe::new();
-    // token_par.read_string("aaabdaaabac".to_string());
-    token_par.read_file("data/dom_casmurro.txt");
-    token_par.set_max_tokens(300);
+    token_par.read_string("aaabdaaabacaa".to_string());
+    // token_par.read_file("data/dom_casmurro.txt");
+    token_par.set_max_tokens(4);
+    token_par.set_recursive(true);
     token_par.set_parallel(true);
     token_par.tokenize();
 
     let duration2 = start2.elapsed();
 
     println!("Parallel results:");
-    // token_par.show_original_string();
-    // token_par.show_difference();
+    token_par.show_original_string();
+    token_par.show_difference();
     println!("Execution time: {:?}", duration2);
 }
